@@ -70,32 +70,46 @@ def search():
     """
     post_data = request.get_json()
 
+    if 'username' not in post_data or 'pattern' not in post_data:
+        return jsonify({'error': 'Invalid input data. "username" and "pattern" fields are required.'}), 400
+    
     username = post_data['username']
     pattern = post_data['pattern']
 
     result = {}
     result['matches'] = []
-    gists = gists_for_user(username)
 
-    # for gist in gists:
-    #     # TODO: Fetch each gist and check for the pattern
-    #     pass
-    for gist in gists:
-        files = gist['files']
-        for file in files.values():
-            content = fetch_gist_content(file['raw_url'])
-            if re.search(pattern, content):
-                result['matches'].append({
-                    'gist_id': gist['id'],
-                    'gist_url': gist['html_url'],
-                    'file_name': file['filename']
-                })
+    try:
+        gists = gists_for_user(username)
 
-    result['status'] = 'success'
-    result['username'] = username
-    result['pattern'] = pattern
+        # Pagination
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 10))
+        start_index = (page - 1) * per_page
+        end_index = start_index + per_page
 
-    return jsonify(result)
+        for gist in gists[start_index:end_index]:
+            files = gist['files']
+            for file in files.values():
+                content = fetch_gist_content(file['raw_url'])
+                if re.search(pattern, content):
+                    result['matches'].append({
+                        'gist_id': gist['id'],
+                        'gist_url': gist['html_url'],
+                        'file_name': file['filename']
+                    })
+
+        result['status'] = 'success'
+        result['username'] = username
+        result['pattern'] = pattern
+
+        return jsonify(result)
+    
+    except requests.exceptions.RequestException as e:
+        return jsonify({'error': 'An error occurred while communicating with the GitHub API.'}), 500
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 if __name__ == '__main__':
