@@ -32,3 +32,103 @@ Please don't use a github API client (i.e. using a basic HTTP library like reque
     - How can we deploy the application in a cloud environment?
     - How can we be sure the application is alive and works as expected when deployed into a cloud environment?
     - Any other topics you may find interesting and/or important to cover
+
+
+# DEVELOPMENT INSTRUCTIONS
+
+## Environment Setup Locally
+
+### Pre-requisites
+
+* git
+* Python (3.9.6)
+* [Poetry](https://python-poetry.org/docs/)
+
+### Steps
+
+1. Use a python virtual environment (optional but recommended).
+    ```bash
+    python -m venv venv  # Create new virtual environment
+    source venv/bin/activate  # Activate the environment
+    ```
+2. Install python dependencies in the root folder.
+
+    Method 1:
+    ```bash
+    poetry lock # this command is optional. you can run this after you add new dependencies on pyproject.toml file
+    poetry install
+    ```
+    Method 2:
+    If you want to install python dependencies using pip, you can run
+    ```bash
+    pip install -r requirements.txt
+    ```
+3. Start your local server.
+
+    Method 1 (using Poetry):
+    ```bash
+    poetry run python gistapi/gistapi.py
+    ```
+    Method 2 (using flask cli):
+    ```bash
+    flask --app gistapi run --port=9876
+    ```
+    Method 3 (using python )
+    ```bash
+    python gistapi/gistapi.py
+    ```
+4. Run tests
+
+    ```bash
+    pytest
+    ```
+5. Run code quality checkers
+    ```bash
+    flake8 .
+    black .
+    ```
+## Environment Setup using Docker
+
+### Pre-requisites
+
+* git
+* Docker (Please make sure Docker is installed on your pc correctly using `docker ps` command)
+
+### Steps
+
+1. Build docker image.
+    ```bash
+    # Run this command in the root folder
+    docker build -t gistapi .
+    ```
+2. Create docker container with specific name
+    ```bash
+    docker create --name gistapi-container -p 9876:9876 gistapi
+    ```
+3. Start (Run) Docker container
+    ```bash
+    docker start gistapi-container
+    ```
+    Now the docker container is running.
+    
+    If you want to check the log,
+    ```bash
+    docker logs --follow gistapi-container
+    ```
+4. Run tests
+    ```bash
+    docker exec -it gistapi-container pytest
+    ```
+5. Run code quality checkers
+    ```bash
+    docker exec -it gistapi-container black .
+    docker exec -it gistapi-container flake8 .
+    ```
+6. Stop Docker container
+    ```bash
+    docker stop gistapi-container
+    ```
+7. Remove Docker container
+     ```bash
+    docker rm gistapi-container
+    ```
