@@ -50,9 +50,12 @@ def fetch_gist_content(gist_url):
     Returns:
         The content of the gist as a string, or an empty string if the request fails.
     """
-    response = requests.get(gist_url)
+    response = requests.get(gist_url, stream=True)
     if response.status_code == 200:
-        return response.text
+        content = ''
+        for chunk in response.iter_content(chunk_size=1024):
+            content += chunk.decode('utf-8')
+        return content
     return ''
 
 
