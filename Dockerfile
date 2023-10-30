@@ -13,9 +13,10 @@ RUN pip install poetry \
     && poetry install --no-interaction --no-ansi
 
 # Copy the rest of the application code to the working directory
-COPY ./gistapi ./
+COPY ./gistapi ./gistapi
+COPY setup.cfg ./
 
 EXPOSE 9876
 
 # Start the Flask server when the container launches
-CMD ["poetry", "run", "python", "gistapi.py"]
+CMD ["poetry", "run", "python", "gistapi/gistapi.py"]
