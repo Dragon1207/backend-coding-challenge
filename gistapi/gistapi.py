@@ -36,7 +36,9 @@ def gists_for_user(username: str):
         The dict parsed from the json response from the Github API.  See
         the above URL for details of the expected structure.
     """
-    gists_url = 'https://api.github.com/users/{username}/gists'.format(username=username)
+    gists_url = "https://api.github.com/users/{username}/gists".format(
+        username=username
+    )
     response = requests.get(gists_url)
     return response.json()
 
@@ -52,14 +54,14 @@ def fetch_gist_content(gist_url):
     """
     response = requests.get(gist_url, stream=True)
     if response.status_code == 200:
-        content = ''
+        content = ""
         for chunk in response.iter_content(chunk_size=1024):
-            content += chunk.decode('utf-8')
+            content += chunk.decode("utf-8")
         return content
-    return ''
+    return ""
 
 
-@app.route("/api/v1/search", methods=['POST'])
+@app.route("/api/v1/search", methods=["POST"])
 def search():
     """Provides matches for a single pattern across a single users gists.
 
@@ -73,47 +75,61 @@ def search():
     """
     post_data = request.get_json()
 
-    if 'username' not in post_data or 'pattern' not in post_data:
-        return jsonify({'error': 'Invalid input data. "username" and "pattern" fields are required.'}), 400
-    
-    username = post_data['username']
-    pattern = post_data['pattern']
+    if "username" not in post_data or "pattern" not in post_data:
+        return (
+            jsonify(
+                {
+                    "error": 'Invalid input data. "username" and "pattern" fields are required.'
+                }
+            ),
+            400,
+        )
+
+    username = post_data["username"]
+    pattern = post_data["pattern"]
 
     result = {}
-    result['matches'] = []
+    result["matches"] = []
 
     try:
         gists = gists_for_user(username)
 
         # Pagination
-        page = int(request.args.get('page', 1))
-        per_page = int(request.args.get('per_page', 10))
+        page = int(request.args.get("page", 1))
+        per_page = int(request.args.get("per_page", 10))
         start_index = (page - 1) * per_page
         end_index = start_index + per_page
 
         for gist in gists[start_index:end_index]:
-            files = gist['files']
+            files = gist["files"]
             for file in files.values():
-                content = fetch_gist_content(file['raw_url'])
+                content = fetch_gist_content(file["raw_url"])
                 if re.search(pattern, content):
-                    result['matches'].append({
-                        'gist_id': gist['id'],
-                        'gist_url': gist['html_url'],
-                        'file_name': file['filename']
-                    })
+                    result["matches"].append(
+                        {
+                            "gist_id": gist["id"],
+                            "gist_url": gist["html_url"],
+                            "file_name": file["filename"],
+                        }
+                    )
 
-        result['status'] = 'success'
-        result['username'] = username
-        result['pattern'] = pattern
+        result["status"] = "success"
+        result["username"] = username
+        result["pattern"] = pattern
 
         return jsonify(result)
-    
-    except requests.exceptions.RequestException as e:
-        return jsonify({'error': 'An error occurred while communicating with the GitHub API.'}), 500
+
+    except requests.exceptions.RequestException:
+        return (
+            jsonify(
+                {"error": "An error occurred while communicating with the GitHub API."}
+            ),
+            500,
+        )
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=9876)
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=9876)
