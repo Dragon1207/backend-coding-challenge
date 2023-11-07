@@ -100,7 +100,7 @@ def search():
         start_index = (page - 1) * per_page
         end_index = start_index + per_page
 
-        for gist in gists[start_index:end_index]:
+        for gist in gists:
             files = gist["files"]
             for file in files.values():
                 content = fetch_gist_content(file["raw_url"])
@@ -116,6 +116,7 @@ def search():
         result["status"] = "success"
         result["username"] = username
         result["pattern"] = pattern
+        result["matches"] = result["matches"][start_index:end_index]
 
         return jsonify(result)
 

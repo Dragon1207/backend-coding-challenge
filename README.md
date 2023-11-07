@@ -71,7 +71,7 @@ Please don't use a github API client (i.e. using a basic HTTP library like reque
     ```
     Method 2 (using flask cli):
     ```bash
-    flask --app gistapi run --port=9876
+    flask --app gistapi --debug run --port=9876
     ```
     Method 3 (using python )
     ```bash
